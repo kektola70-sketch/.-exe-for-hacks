@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWILL Scanner - Online</title>
+    <title>SWILL Scanner - kektola70-sketch</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -12,28 +12,45 @@
             font-family: 'Courier New', monospace;
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .container { max-width: 900px; margin: 0 auto; }
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
         header {
             border: 2px solid #00ff41;
             border-radius: 15px;
             padding: 30px;
             text-align: center;
             margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.2);
         }
         h1 {
             font-size: 2.5em;
             text-shadow: 0 0 20px #00ff41;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #00cc33;
+        }
+        .card {
+            background: #111827;
+            border: 2px solid #00ff41;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
         }
         .input-group {
             display: flex;
             gap: 15px;
-            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         input {
             flex: 1;
-            min-width: 300px;
+            min-width: 250px;
             background: #000;
             border: 2px solid #00ff41;
             color: #00ff41;
@@ -43,36 +60,56 @@
             border-radius: 10px;
             outline: none;
         }
+        input:focus {
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
         button {
             background: #00ff41;
             color: #000;
             border: none;
-            padding: 15px 30px;
+            padding: 15px 25px;
             font-weight: bold;
             cursor: pointer;
             font-size: 16px;
             border-radius: 10px;
             transition: all 0.3s;
+            font-family: 'Courier New', monospace;
         }
         button:hover {
             background: #00cc33;
             box-shadow: 0 0 20px #00ff41;
+            transform: scale(1.05);
         }
-        .output {
-            background: #000;
-            border: 2px solid #00ff41;
-            border-radius: 15px;
-            padding: 20px;
-            min-height: 300px;
-            white-space: pre-wrap;
-            font-size: 14px;
-        }
-        .info-box {
+        .info {
             background: #111827;
             border: 2px solid #00ccff;
-            border-radius: 10px;
+            border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
+        }
+        .info p {
+            margin: 10px 0;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat {
+            text-align: center;
+            padding: 15px;
+            background: #000;
+            border-radius: 10px;
+            border: 1px solid #00ff41;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 0.8em;
+            color: #999;
         }
     </style>
 </head>
@@ -80,45 +117,55 @@
     <div class="container">
         <header>
             <h1>⚡ SWILL Scanner ⚡</h1>
-            <p>Online Security Scanner</p>
+            <p class="subtitle">kektola70-sketch/.-exe-for-hacks</p>
         </header>
         
-        <div class="info-box">
-            <p>🔗 Сканер работает через GitHub Actions</p>
-            <p>📊 Результаты сохраняются в artifacts</p>
-            <p>🔄 Автоматический запуск каждый день</p>
+        <div class="card">
+            <h2>🔍 Сканирование</h2>
+            <p style="margin: 15px 0;">Введите URL для проверки безопасности</p>
+            <div class="input-group">
+                <input type="text" id="target" placeholder="https://example.com">
+                <button onclick="startScan()">Сканировать</button>
+            </div>
         </div>
         
-        <div class="input-group">
-            <input type="text" id="target" placeholder="Введите URL (например: https://example.com)">
-            <button onclick="openWorkflow()">Сканировать</button>
+        <div class="info">
+            <h3>📋 Как работает:</h3>
+            <p>1. Введите URL цели</p>
+            <p>2. Нажмите "Сканировать"</p>
+            <p>3. Откроется GitHub Actions</p>
+            <p>4. Нажмите "Run workflow"</p>
+            <p>5. Скачайте отчет</p>
         </div>
         
-        <div class="output" id="output">
-[SWILL] Введите URL и нажмите "Сканировать"
-[SWILL] Откроется GitHub Actions для запуска
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">10+</div>
+                <div class="stat-label">Типов проверок</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">100</div>
+                <div class="stat-label">Балльная оценка</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">24/7</div>
+                <div class="stat-label">Доступность</div>
+            </div>
         </div>
     </div>
     
     <script>
-        function openWorkflow() {
-            const target = document.getElementById('target').value;
+        function startScan() {
+            const target = document.getElementById('target').value.trim();
             if (!target) {
                 alert('Введите URL');
                 return;
             }
             
-            const repo = 'ВАШ_ЛОГИН/ВАШ_РЕПОЗИТОРИЙ';
-            const workflowUrl = `https://github.com/${repo}/actions/workflows/scanner.yml`;
-            
-            document.getElementById('output').innerHTML = `
-[SWILL] Цель: ${target}
-[SWILL] Открываю GitHub Actions...
-[SWILL] URL: ${workflowUrl}
-[SWILL] Нажмите "Run workflow" и введите URL
-            `;
-            
+            const workflowUrl = 'https://github.com/kektola70-sketch/.-exe-for-hacks/actions/workflows/scanner.yml';
             window.open(workflowUrl, '_blank');
+            
+            alert('В открывшейся странице:\n1. Нажмите "Run workflow"\n2. Введите URL: ' + target + '\n3. Нажмите "Run workflow"');
         }
     </script>
 </body>
