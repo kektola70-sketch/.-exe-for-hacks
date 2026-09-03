@@ -1,0 +1,62 @@
+name: SWILL Security Scanner
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'URL для сканирования'
+        required: true
+        type: string
+        default: 'https://example.com'
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Run Security Scanner
+        env:
+          TARGET_URL: ${{ github.event.inputs.target_url || 'https://example.com' }}
+        run: |
+          python scanner.py "$TARGET_URL"
+          
+      - name: Display Report
+        run: |
+          echo "=== SECURITY REPORT ==="
+          cat security_report.txt
+          
+      - name: Upload Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: |
+            security_report.txt
+            security_report.json
+          retention-days: 30
+          
+      - name: Commit Report
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          mkdir -p reports
+          cp security_report.txt reports/
+          cp security_report.json reports/
+          git add reports/
+          git commit -m "📊 Обновление отчета безопасности $(date +'%Y-%m-%d')" || echo "Нет изменений"
+          git push || echo "Не удалось отправить"
