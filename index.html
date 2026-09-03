@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWILL Control Center</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            border: 2px solid #00ff41;
+            border-radius: 10px;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            box-shadow: 0 0 30px rgba(0,255,65,0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        .output {
+            background: #000;
+            border: 1px solid #00ff41;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            background: #000;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
+        }
+        button {
+            background: #00ff41;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #00cc33;
+            box-shadow: 0 0 20px #00ff41;
+        }
+        .status {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .blink {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ SWILL Control Center ⚡</h1>
+        <div class="output" id="output">
+[SYSTEM] Инициализация...
+[SYSTEM] Подключение к python-backend...
+[SYSTEM] Готов к работе.
+        </div>
+        <div class="input-group">
+            <input type="text" id="command" placeholder="Введите команду..." onkeypress="if(event.key==='Enter')sendCommand()">
+            <button onclick="sendCommand()">Выполнить</button>
+        </div>
+        <div class="status">
+            <span class="blink">●</span> Соединение активно
+        </div>
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function addLog(message) {
+            output.innerHTML += '\n' + message;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        async function sendCommand() {
+            const cmd = document.getElementById('command').value;
+            if (!cmd) return;
+            
+            document.getElementById('command').value = '';
+            addLog('[CMD] ' + cmd);
+            
+            try {
+                const response = await fetch('http://localhost:5000/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmd })
+                });
+                const data = await response.json();
+                addLog('[RESULT] ' + data.result);
+            } catch (e) {
+                addLog('[ERROR] Не удалось подключиться к backend');
+            }
+        }
+        
+        // Автоподключение к серверу
+        fetch('http://localhost:5000/status')
+            .then(r => r.json())
+            .then(d => addLog('[SYSTEM] Backend: ' + d.status))
+            .catch(() => addLog('[SYSTEM] Backend недоступен'));
+    </script>
+</body>
+</html>
