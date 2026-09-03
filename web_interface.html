@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWILL Scanner</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #ff3300;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            border: 2px solid #ff3300;
+            border-radius: 10px;
+            padding: 20px;
+            background: rgba(0,0,0,0.9);
+            box-shadow: 0 0 40px rgba(255,51,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px #ff3300;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            background: #000;
+            border: 1px solid #ff3300;
+            color: #ff3300;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            outline: none;
+        }
+        button {
+            background: #ff3300;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #cc2900;
+            box-shadow: 0 0 30px #ff3300;
+            transform: scale(1.05);
+        }
+        .progress {
+            background: #000;
+            border: 1px solid #ff3300;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        .vulnerability {
+            background: #1a0000;
+            border: 1px solid #ff3300;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .critical {
+            color: #ff0000;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ SWILL Vulnerability Scanner ⚡</h1>
+        
+        <div class="input-group">
+            <input type="text" id="target" placeholder="Введите URL для сканирования (например: http://example.com)">
+            <button onclick="startScan()">Сканировать</button>
+        </div>
+        
+        <div class="progress" id="output">
+[SWILL] Готов к сканированию...
+[SWILL] Введите URL и нажмите "Сканировать"
+        </div>
+    </div>
+    
+    <script>
+        function startScan() {
+            const target = document.getElementById('target').value;
+            if (!target) {
+                alert('Введите URL');
+                return;
+            }
+            
+            const output = document.getElementById('output');
+            output.innerHTML = '[SWILL] Начинаю сканирование: ' + target + '\n';
+            
+            // Здесь будет AJAX запрос к Python backend
+            fetch('/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target: target })
+            })
+            .then(response => response.json())
+            .then(data => {
+                output.innerHTML += data.result;
+            })
+            .catch(error => {
+                output.innerHTML += '[ERROR] ' + error;
+            });
+        }
+    </script>
+</body>
+</html>
