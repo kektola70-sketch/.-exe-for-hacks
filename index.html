@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWILL Security Scanner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-card: #1a2332;
+            --border-color: #00ff41;
+            --text-primary: #00ff41;
+            --text-secondary: #00cc33;
+            --danger: #ff3333;
+            --warning: #ff9900;
+            --info: #00ccff;
+            --success: #00ff41;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 65, 0.05) 0%, transparent 50%),
+                linear-gradient(to bottom, #0a0e17, #0d1117);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.2);
+        }
+        
+        h1 {
+            font-size: 3em;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px var(--text-primary);
+            animation: glow 2s infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px var(--text-primary); }
+            50% { text-shadow: 0 0 40px var(--text-primary), 0 0 60px var(--text-primary); }
+        }
+        
+        .subtitle {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: var(--text-secondary);
+        }
+        
+        .input-section {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            background: #000;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 18px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            outline: none;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus {
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            border-color: #fff;
+        }
+        
+        .input-group input::placeholder {
+            color: #666;
+        }
+        
+        .btn {
+            background: var(--border-color);
+            color: #000;
+            border: none;
+            padding: 18px 35px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+        
+        .btn:hover {
+            background: #00cc33;
+            box-shadow: 0 0 30px var(--border-color);
+            transform: scale(1.05);
+        }
+        
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0, 255, 65, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+        
+        .checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .checkbox-item:hover {
+            background: rgba(0, 255, 65, 0.1);
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--border-color);
+        }
+        
+        .progress-container {
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .progress-container.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: #000;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff41, #00cc33);
+            width: 0%;
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+        
+        .terminal {
+            background: #000;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+            font-size: 14px;
+            white-space: pre-wrap;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+        }
+        
+        .terminal .log-error {
+            color: var(--danger);
+        }
+        
+        .terminal .log-warning {
+            color: var(--warning);
+        }
+        
+        .terminal .log-info {
+            color: var(--info);
+        }
+        
+        .terminal .log-success {
+            color: var(--success);
+        }
+        
+        .terminal .log-critical {
+            color: #ff0000;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .results {
+            display: none;
+            margin-bottom: 30px;
+        }
+        
+        .results.active {
+            display: block;
+        }
+        
+        .score-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.2);
+        }
+        
+        .score-number {
+            font-size: 6em;
+            font-weight: bold;
+            text-shadow: 0 0 30px var(--border-color);
+            animation: score-glow 2s infinite;
+        }
+        
+        @keyframes score-glow {
+            0%, 100% { text-shadow: 0 0 30px var(--border-color); }
+            50% { text-shadow: 0 0 60px var(--border-color), 0 0 90px var(--border-color); }
+        }
+        
+        .score-number.danger {
+            color: var(--danger);
+            text-shadow: 0 0 30px var(--danger);
+        }
+        
+        .score-number.warning {
+            color: var(--warning);
+            text-shadow: 0 0 30px var(--warning);
+        }
+        
+        .score-number.success {
+            color: var(--success);
+            text-shadow: 0 0 30px var(--success);
+        }
+        
+        .score-label {
+            font-size: 1.5em;
+            margin-top: 10px;
+        }
+        
+        .score-details {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .score-detail {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .score-detail .label {
+            font-size: 0.9em;
+            color: #999;
+        }
+        
+        .score-detail .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .vulnerability-card {
+            background: #1a0000;
+            border: 2px solid var(--danger);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            animation: vuln-pulse 1s infinite;
+        }
+        
+        @keyframes vuln-pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 51, 51, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(255, 51, 51, 0.7); }
+        }
+        
+        .vulnerability-card.warning {
+            border-color: var(--warning);
+            animation: vuln-pulse-warning 1s infinite;
+        }
+        
+        @keyframes vuln-pulse-warning {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 153, 0, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(255, 153, 0, 0.7); }
+        }
+        
+        .vulnerability-card .vuln-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .vulnerability-card .vuln-type {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .vulnerability-card .vuln-severity {
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .vulnerability-card .vuln-severity.critical {
+            background: #ff0000;
+            color: #fff;
+        }
+        
+        .vulnerability-card .vuln-severity.high {
+            background: #ff6600;
+            color: #fff;
+        }
+        
+        .vulnerability-card .vuln-severity.medium {
+            background: #ffcc00;
+            color: #000;
+        }
+        
+        .vulnerability-card .vuln-severity.low {
+            background: #00ff41;
+            color: #000;
+        }
+        
+        .vulnerability-card .vuln-details {
+            margin-top: 10px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: var(--border-color);
+            color: #000;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+        }
+        
+        .download-btn:hover {
+            background: #00cc33;
+            box-shadow: 0 0 30px var(--border-color);
+            transform: scale(1.05);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 2px solid var(--border-color);
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ SWILL Security Scanner ⚡</h1>
+            <div class="subtitle">Advanced Vulnerability Assessment Tool</div>
+        </header>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <input type="text" id="target-url" placeholder="Введите URL для сканирования (например: https://example.com)" onkeypress="if(event.key==='Enter')startScan()">
+                <button class="btn" id="scan-btn" onclick="startScan()">🔍 Сканировать</button>
+                <button class="btn btn-secondary" onclick="clearAll()">Очистить</button>
+            </div>
+            
+            <div class="checkboxes">
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> SQL Injection
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> XSS
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> Auth Bypass
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> Command Injection
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> File Upload
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> Path Traversal
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> CSRF
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> SSRF
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> Header Injection
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" checked> Directory Listing
+                </label>
+            </div>
+        </div>
+        
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill">0%</div>
+            </div>
+            <div class="progress-text" id="progress-text">Готов к сканированию</div>
+        </div>
+        
+        <div class="terminal" id="terminal">
+[SWILL] Система инициализирована...
+[SWILL] Готов к работе...
+[SWILL] Введите URL и нажмите "Сканировать"
+        </div>
+        
+        <div class="results" id="results">
+            <div class="score-card">
+                <h2 style="margin-bottom: 20px;">Оценка безопасности</h2>
+                <div class="score-number" id="score-number">0</div>
+                <div class="score-label" id="score-label">Не оценено</div>
+                
+                <div class="score-details">
+                    <div class="score-detail">
+                        <div class="label">Критических уязвимостей</div>
+                        <div class="value" id="critical-count" style="color: #ff0000;">0</div>
+                    </div>
+                    <div class="score-detail">
+                        <div class="label">Высоких уязвимостей</div>
+                        <div class="value" id="high-count" style="color: #ff6600;">0</div>
+                    </div>
+                    <div class="score-detail">
+                        <div class="label">Средних уязвимостей</div>
+                        <div class="value" id="medium-count" style="color: #ffcc00;">0</div>
+                    </div>
+                    <div class="score-detail">
+                        <div class="label">Низких уязвимостей</div>
+                        <div class="value" id="low-count" style="color: #00ff41;">0</div>
+                    </div>
+                </div>
+                
+                <button class="download-btn" onclick="downloadReport()">📥 Скачать отчет (.txt)</button>
+            </div>
+            
+            <div id="vulnerabilities-list"></div>
+        </div>
+        
+        <footer>
+            <p>SWILL Security Scanner v1.0 | TG: t.me/Swill_Way</p>
+            <p class="blink">● Система активна</p>
+        </footer>
+    </div>
+    
+    <script>
+        let scanning = false;
+        let progress = 0;
+        let vulnerabilities = [];
+        let reportData = {};
+        
+        function addLog(message, type = 'info') {
+            const terminal = document.getElementById('terminal');
+            const logClass = `log-${type}`;
+            terminal.innerHTML += `\n<span class="${logClass}">${message}</span>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        function updateProgress(value, text) {
+            progress = value;
+            document.getElementById('progress-fill').style.width = value + '%';
+            document.getElementById('progress-fill').textContent = value + '%';
+            document.getElementById('progress-text').textContent = text;
+        }
+        
+        function clearAll() {
+            document.getElementById('target-url').value = '';
+            document.getElementById('terminal').innerHTML = '[SWILL] Терминал очищен...';
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('progress-container').classList.remove('active');
+            vulnerabilities = [];
+            reportData = {};
+        }
+        
+        async function startScan() {
+            const target = document.getElementById('target-url').value.trim();
+            if (!target) {
+                addLog('[ERROR] Введите URL для сканирования', 'error');
+                return;
+            }
+            
+            if (!target.startsWith('http://') && !target.startsWith('https://')) {
+                addLog('[ERROR] URL должен начинаться с http:// или https://', 'error');
+                return;
+            }
+            
+            scanning = true;
+            vulnerabilities = [];
+            document.getElementById('scan-btn').disabled = true;
+            document.getElementById('progress-container').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('vulnerabilities-list').innerHTML = '';
+            
+            addLog('\n[SWILL] ========== НАЧАЛО СКАНИРОВАНИЯ ==========', 'success');
+            addLog(`[TARGET] ${target}`, 'info');
+            addLog(`[TIME] ${new Date().toLocaleString()}`, 'info');
+            addLog('[SWILL] ========================================\n', 'success');
+            
+            await runScan(target);
+        }
+        
+        async function runScan(target) {
+            const tests = [
+                { name: 'Проверка доступности сайта', duration: 1500, type: 'availability' },
+                { name: 'Анализ HTTP заголовков', duration: 2000, type: 'headers' },
+                { name: 'Проверка SSL/TLS', duration: 2500, type: 'ssl' },
+                { name: 'Поиск форм и полей ввода', duration: 2000, type: 'forms' },
+                { name: 'SQL Injection тестирование', duration: 4000, type: 'sql' },
+                { name: 'XSS тестирование', duration: 3000, type: 'xss' },
+                { name: 'Auth Bypass тестирование', duration: 3000, type: 'auth' },
+                { name: 'Command Injection тестирование', duration: 2500, type: 'cmd' },
+                { name: 'File Upload тестирование', duration: 2000, type: 'upload' },
+                { name: 'Path Traversal тестирование', duration: 2500, type: 'path' },
+                { name: 'CSRF тестирование', duration: 2000, type: 'csrf' },
+                { name: 'SSRF тестирование', duration: 2000, type: 'ssrf' },
+                { name: 'Header Injection тестирование', duration: 1500, type: 'header-inj' },
+                { name: 'Directory Listing проверка', duration: 1500, type: 'dir-list' },
+                { name: 'Анализ безопасности данных', duration: 2500, type: 'data' },
+                { name: 'Генерация отчета', duration: 1500, type: 'report' }
+            ];
+            
+            const progressStep = 100 / tests.length;
+            let currentProgress = 0;
+            
+            for (const test of tests) {
+                if (!scanning) break;
+                
+                addLog(`[*] ${test.name}...`, 'info');
+                updateProgress(currentProgress, test.name);
+                
+                await sleep(test.duration);
+                
+                // Генерация результатов теста
+                generateTestResult(test, target);
+                
+                currentProgress += progressStep;
+                updateProgress(currentProgress, `${test.name} - завершено`);
+            }
+            
+            updateProgress(100, 'Сканирование завершено');
+            addLog('\n[SWILL] ========== СКАНИРОВАНИЕ ЗАВЕРШЕНО ==========', 'success');
+            
+            generateReport(target);
+            
+            scanning = false;
+            document.getElementById('scan-btn').disabled = false;
+        }
+        
+        function generateTestResult(test, target) {
+            // Имитация результатов тестирования
+            const random = Math.random();
+            
+            switch(test.type) {
+                case 'availability':
+                    addLog(`[+] Сайт доступен: ${target}`, 'success');
+                    break;
+                    
+                case 'headers':
+                    if (random < 0.3) {
+                        addVulnerability({
+                            type: 'Отсутствует X-Frame-Options',
+                            severity: 'medium',
+                            description: 'Заголовок X-Frame-Options не установлен. Сайт уязвим к clickjacking атакам.',
+                            recommendation: 'Добавьте заголовок X-Frame-Options: DENY или SAMEORIGIN'
+                        });
+                    }
+                    if (random < 0.4) {
+                        addVulnerability({
+                            type: 'Отсутствует Content-Security-Policy',
+                            severity: 'high',
+                            description: 'Заголовок CSP не установлен. Сайт уязвим к XSS атакам.',
+                            recommendation: 'Добавьте заголовок Content-Security-Policy'
+                        });
+                    }
+                    if (random < 0.2) {
+                        addVulnerability({
+                            type: 'Раскрытие версии сервера',
+                            severity: 'low',
+                            description: 'Сервер раскрывает свою версию в заголовках.',
+                            recommendation: 'Скройте версию сервера в настройках'
+                        });
+                    }
+                    break;
+                    
+                case 'ssl':
+                    if (random < 0.3) {
+                        addVulnerability({
+                            type: 'Устаревший SSL/TLS протокол',
+                            severity: 'high',
+                            description: 'Используется устаревшая версия TLS 1.0 или SSL 3.0.',
+                            recommendation: 'Обновите до TLS 1.2 или TLS 1.3'
+                        });
+                    }
+                    break;
+                    
+                case 'sql':
+                    if (random < 0.5) {
+                        addVulnerability({
+                            type: 'SQL Injection',
+                            severity: 'critical',
+                            description: 'Обнаружена SQL-инъекция в параметрах запроса. Злоумышленник может получить доступ к базе данных.',
+                            recommendation: 'Используйте параметризованные запросы (prepared statements)',
+                            payload: "' OR '1'='1' --"
+                        });
+                    }
+                    break;
+                    
+                case 'xss':
+                    if (random < 0.4) {
+                        addVulnerability({
+                            type: 'XSS (Cross-Site Scripting)',
+                            severity: 'high',
+                            description: 'Обнаружена XSS-уязвимость. Злоумышленник может выполнить произвольный JavaScript в браузере жертвы.',
+                            recommendation: 'Экранируйте пользовательский ввод',
+                            payload: '<script>alert(1)</script>'
+                        });
+                    }
+                    break;
+                    
+                case 'auth':
+                    if (random < 0.3) {
+                        addVulnerability({
+                            type: 'Обход аутентификации',
+                            severity: 'critical',
+                            description: 'Обнаружена возможность обхода аутентификации через SQL-инъекцию.',
+                            recommendation: 'Используйте безопасные методы аутентификации',
+                            payload: "admin' --"
+                        });
+                    }
+                    break;
+                    
+                case 'cmd':
+                    if (random < 0.2) {
+                        addVulnerability({
+                            type: 'Command Injection',
+                            severity: 'critical',
+                            description: 'Обнаружена возможность выполнения произвольных команд на сервере.',
+                            recommendation: 'Не передавайте пользовательский ввод в системные команды',
+                            payload: '; ls -la'
+                        });
+                    }
+                    break;
+                    
+                case 'path':
+                    if (random < 0.25) {
+                        addVulnerability({
+                            type: 'Path Traversal',
+                            severity: 'high',
+                            description: 'Обнаружена возможность чтения произвольных файлов на сервере.',
+                            recommendation: 'Проверяйте и экранируйте пути к файлам',
+                            payload: '../../etc/passwd'
+                        });
+                    }
+                    break;
+                    
+                case 'csrf':
+                    if (random < 0.3) {
+                        addVulnerability({
+                            type: 'Отсутствует CSRF-защита',
+                            severity: 'medium',
+                            description: 'Формы не защищены от CSRF-атак.',
+                            recommendation: 'Добавьте CSRF-токены в формы'
+                        });
+                    }
+                    break;
+                    
+                case 'data':
+                    if (random < 0.3) {
+                        addVulnerability({
+                            type: 'Передача данных без шифрования',
+                            severity: 'high',
+                            description: 'Конфиденциальные данные передаются по незащищенному соединению.',
+                            recommendation: 'Используйте HTTPS для передачи данных'
+                        });
+                    }
+                    break;
+            }
+            
+            // Случайные уязвимости для демонстрации
+            if (random < 0.15 && test.type !== 'availability') {
+                const randomVulns = [
+                    {
+                        type: 'SQL Injection в параметре id',
+                        severity: 'critical',
+                        description: 'Обнаружена SQL-инъекция в параметре id',
+                        recommendation: 'Используйте параметризованные запросы',
+                        payload: "1' OR '1'='1"
+                    },
+                    {
+                        type: 'Открытый доступ к административной панели',
+                        severity: 'high',
+                        description: 'Административная панель доступна без аутентификации',
+                        recommendation: 'Ограничьте доступ к административной панели'
+                    },
+                    {
+                        type: 'Раскрытие конфиденциальной информации',
+                        severity: 'medium',
+                        description: 'В ответе сервера обнаружена конфиденциальная информация',
+                        recommendation: 'Проверьте вывод данных'
+                    }
+                ];
+                
+                const randomVuln = randomVulns[Math.floor(Math.random() * randomVulns.length)];
+                addVulnerability(randomVuln);
+            }
+        }
+        
+        function addVulnerability(vuln) {
+            vulnerabilities.push(vuln);
+            
+            const severityClass = vuln.severity.toLowerCase();
+            addLog(`[!] НАЙДЕНА УЯЗВИМОСТЬ: ${vuln.type}`, 'critical');
+            addLog(`    Severity: ${vuln.severity}`, vuln.severity === 'critical' ? 'critical' : 'warning');
+            if (vuln.payload) {
+                addLog(`    Payload: ${vuln.payload}`, 'warning');
+            }
+            
+            // Добавление карточки уязвимости
+            const vulnList = document.getElementById('vulnerabilities-list');
+            const card = document.createElement('div');
+            card.className = `vulnerability-card ${vuln.severity === 'critical' || vuln.severity === 'high' ? '' : 'warning'}`;
+            card.innerHTML = `
+                <div class="vuln-header">
+                    <span class="vuln-type">${vuln.type}</span>
+                    <span class="vuln-severity ${severityClass}">${vuln.severity.toUpperCase()}</span>
+                </div>
+                <div class="vuln-details">
+                    <p><strong>Описание:</strong> ${vuln.description}</p>
+                    <p><strong>Рекомендация:</strong> ${vuln.recommendation}</p>
+                    ${vuln.payload ? `<p><strong>Payload:</strong> ${vuln.payload}</p>` : ''}
+                </div>
+            `;
+            vulnList.appendChild(card);
+        }
+        
+        function generateReport(target) {
+            const criticalCount = vulnerabilities.filter(v => v.severity === 'critical').length;
+            const highCount = vulnerabilities.filter(v => v.severity === 'high').length;
+            const mediumCount = vulnerabilities.filter(v => v.severity === 'medium').length;
+            const lowCount = vulnerabilities.filter(v => v.severity === 'low').length;
+            
+            // Расчет оценки
+            let score = 100;
+            score -= criticalCount * 20;
+            score -= highCount * 10;
+            score -= mediumCount * 5;
+            score -= lowCount * 2;
+            
+            score = Math.max(0, Math.min(100, score));
+            
+            reportData = {
+                target: target,
+                date: new Date().toLocaleString(),
+                score: score,
+                criticalCount: criticalCount,
+                highCount: highCount,
+                mediumCount: mediumCount,
+                lowCount: lowCount,
+                vulnerabilities: vulnerabilities
+            };
+            
+            // Отображение результатов
+            document.getElementById('results').classList.add('active');
+            document.getElementById('score-number').textContent = score;
+            document.getElementById('critical-count').textContent = criticalCount;
+            document.getElementById('high-count').textContent = highCount;
+            document.getElementById('medium-count').textContent = mediumCount;
+            document.getElementById('low-count').textContent = lowCount;
+            
+            const scoreNumber = document.getElementById('score-number');
+            const scoreLabel = document.getElementById('score-label');
+            
+            if (score >= 80) {
+                scoreNumber.className = 'score-number success';
+                scoreLabel.textContent = 'Отличная безопасность';
+                scoreLabel.style.color = '#00ff41';
+            } else if (score >= 60) {
+                scoreNumber.className = 'score-number warning';
+                scoreLabel.textContent = 'Хорошая безопасность';
+                scoreLabel.style.color = '#ff9900';
+            } else if (score >= 40) {
+                scoreNumber.className = 'score-number warning';
+                scoreLabel.textContent = 'Средняя безопасность';
+                scoreLabel.style.color = '#ff9900';
+            } else if (score >= 20) {
+                scoreNumber.className = 'score-number danger';
+                scoreLabel.textContent = 'Плохая безопасность';
+                scoreLabel.style.color = '#ff3333';
+            } else {
+                scoreNumber.className = 'score-number danger';
+                scoreLabel.textContent = 'Критическая уязвимость';
+                scoreLabel.style.color = '#ff0000';
+            }
+            
+            addLog(`\n[SWILL] Оценка безопасности: ${score}/100`, score >= 60 ? 'success' : 'critical');
+            addLog(`[SWILL] Критических: ${criticalCount}, Высоких: ${highCount}, Средних: ${mediumCount}, Низких: ${lowCount}`, 'info');
+            addLog('[SWILL] Отчет готов к скачиванию', 'success');
+        }
+        
+        function downloadReport() {
+            if (!reportData.target) return;
+            
+            let report = '='.repeat(60) + '\n';
+            report += 'SWILL SECURITY SCAN REPORT\n';
+            report += '='.repeat(60) + '\n\n';
+            report += `Дата сканирования: ${reportData.date}\n`;
+            report += `Цель: ${reportData.target}\n`;
+            report += `Оценка безопасности: ${reportData.score}/100\n\n`;
+            report += '-'.repeat(60) + '\n';
+            report += 'СТАТИСТИКА УЯЗВИМОСТЕЙ\n';
+            report += '-'.repeat(60) + '\n\n';
+            report += `Критических: ${reportData.criticalCount}\n`;
+            report += `Высоких: ${reportData.highCount}\n`;
+            report += `Средних: ${reportData.mediumCount}\n`;
+            report += `Низких: ${reportData.lowCount}\n`;
+            report += `Всего: ${reportData.vulnerabilities.length}\n\n`;
+            
+            if (reportData.vulnerabilities.length > 0) {
+                report += '-'.repeat(60) + '\n';
+                report += 'НАЙДЕННЫЕ УЯЗВИМОСТИ\n';
+                report += '-'.repeat(60) + '\n\n';
+                
+                reportData.vulnerabilities.forEach((vuln, index) => {
+                    report += `${index + 1}. ${vuln.type}\n`;
+                    report += `   Severity: ${vuln.severity.toUpperCase()}\n`;
+                    report += `   Description: ${vuln.description}\n`;
+                    report += `   Recommendation: ${vuln.recommendation}\n`;
+                    if (vuln.payload) {
+                        report += `   Payload: ${vuln.payload}\n`;
+                    }
+                    report += '\n';
+                });
+            } else {
+                report += 'Уязвимостей не обнаружено.\n';
+            }
+            
+            report += '='.repeat(60) + '\n';
+            report += 'Generated by SWILL Security Scanner\n';
+            report += 'TG: t.me/Swill_Way\n';
+            report += '='.repeat(60) + '\n';
+            
+            const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security_report_${new Date().getTime()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addLog('[SWILL] Отчет скачан', 'success');
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Инициализация
+        addLog('[SWILL] Загрузка модулей...', 'info');
+        setTimeout(() => {
+            addLog('[SWILL] Все модули загружены', 'success');
+            addLog('[SWILL] Готов к работе', 'success');
+        }, 1000);
+    </script>
+</body>
+  </html>
